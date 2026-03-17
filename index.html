@@ -856,7 +856,6 @@ function getJobSearch(job) {
   const wu51    = t => ({ url: `https://search.51job.com/list/000000,000000,0000,00,9,99,${encodeURIComponent(t)},2,1.html`,                          platform: '前程无忧'  });
   const liepin  = t => ({ url: `https://www.liepin.com/zhaopin/?key=${encodeURIComponent(t)}`,                                                        platform: '猎聘'      });
   const linkedin= t => ({ url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(t)}&location=%E4%B8%AD%E5%9B%BD`,                 platform: 'LinkedIn'  });
-  const maimai  = t => ({ url: `https://maimai.cn/job?keywords=${encodeURIComponent(t)}`,                                                             platform: '脉脉'      });
   const eleduck = t => ({ url: `https://eleduck.com/search?keyword=${encodeURIComponent(t)}`,                                                         platform: '电鸭社区'  });
   const yizhi   = t => ({ url: `https://www.yizhipin.com/pc/job/search?keyword=${encodeURIComponent(t)}`,                                             platform: '易直聘'    });
 
@@ -866,7 +865,7 @@ function getJobSearch(job) {
     '智能体架构师':       linkedin,
     'AI提效顾问':         yizhi,
     '数字人IP运营者':     boss,
-    '垂直领域知识策展人': maimai,
+    '垂直领域知识策展人': boss,
     '微型SaaS独立创始人': eleduck,
     '私有化模型微调专家': linkedin,
     '生成式AI系统测试员': yizhi,
@@ -880,16 +879,16 @@ function getJobSearch(job) {
     '虚拟电厂调度员':     liepin,
     '量子算法应用工程师': linkedin,
     /* 创业者 / 一人公司 */
-    '一人公司操盘手':     eleduck,
-    '知识付费从业者':     maimai,
+    '一人公司':           eleduck,
+    '知识付费':           boss,
     '私营企业主':         boss,
     '自由职业者':         eleduck,
     '跨境电商从业者':     boss,
     '职业经理人':         liepin,
     /* 互联网 / 技术 高薪岗 */
-    'AI算法工程师':       maimai,
-    '网络安全工程师':     maimai,
-    '产品经理':           maimai,
+    'AI算法工程师':       liepin,
+    '网络安全工程师':     boss,
+    '产品经理':           boss,
     '游戏开发工程师':     boss,
     /* 金融高端 */
     '财务总监':           liepin,
