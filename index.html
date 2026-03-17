@@ -359,8 +359,12 @@ function _ar(it, i0, end, rSum, w, h, rem, wide) {
 ══════════════════════════════════ */
 function resize() {
   const dpr = window.devicePixelRatio || 1;
-  const W = window.innerWidth  - document.getElementById('sidebar').offsetWidth;
-  const H = window.innerHeight;
+  // Read from #main directly — more reliable than window.innerWidth - sidebar.offsetWidth,
+  // especially on iOS where sidebar offsetWidth may not reflect CSS reflow during orientationchange
+  const main = document.getElementById('main');
+  const W = main.clientWidth  || (window.innerWidth  - document.getElementById('sidebar').offsetWidth);
+  const H = main.clientHeight || window.innerHeight;
+  if (!W || !H) return;
   cv.width  = Math.round(W*dpr);
   cv.height = Math.round(H*dpr);
   cv.style.width  = W+'px';
@@ -1006,10 +1010,13 @@ function _handleResize(){
 }
 window.addEventListener('resize', _handleResize);
 window.addEventListener('orientationchange', ()=>{
-  // iOS needs extra time after orientationchange for innerWidth/innerHeight to update
-  setTimeout(_handleResize, 350);
-  setTimeout(_handleResize, 750);
+  // iOS delays layout updates after orientationchange — fire multiple times to catch the settled state
+  [200, 400, 700, 1200].forEach(d => setTimeout(()=>{ resize(); buildLayout(); }, d));
 });
+// visualViewport is more reliable than resize on mobile Safari
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', _handleResize);
+}
 
 /* ══════════════════════════════════
    BOOT
