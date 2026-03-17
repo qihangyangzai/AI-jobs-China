@@ -190,9 +190,12 @@ body{display:flex}
   </div>
 
   <div class="legend">
-    <span class="ldot" style="background:#1e7a40"></span><span class="ll">低风险</span>
-    <span class="ldot" style="background:#c9a227"></span><span class="ll">中风险</span>
-    <span class="ldot" style="background:#c0392b"></span><span class="ll">高风险</span>
+    <span class="ldot" style="background:#1e7a40"></span><span class="ll">极安全</span>
+    <span class="ldot" style="background:#5aad3e"></span><span class="ll">低风险</span>
+    <span class="ldot" style="background:#a8c020"></span><span class="ll">中低</span>
+    <span class="ldot" style="background:#d4880e"></span><span class="ll">中高</span>
+    <span class="ldot" style="background:#cc3d20"></span><span class="ll">高风险</span>
+    <span class="ldot" style="background:#9e1818"></span><span class="ll">极高</span>
   </div>
 </div>
 
@@ -244,22 +247,12 @@ function easeInOut(t) {
 function lerp(a, b, t) { return a + (b - a) * t; }
 
 /* ══════════════════════════════════
-   COLOR  0–10
+   COLOR  6 discrete levels 0–10
 ══════════════════════════════════ */
+const CLR6 = ['#1e7a40','#5aad3e','#a8c020','#d4880e','#cc3d20','#9e1818'];
 function clr(s) {
-  const t = Math.max(0, Math.min(10, +s)) / 10;
-  let r, g, b;
-  if (t < 0.45) {
-    const p = t / 0.45;
-    r = Math.round(30  + p*168); g = Math.round(122 + p*28); b = Math.round(62 - p*22);
-  } else if (t < 0.72) {
-    const p = (t-0.45)/0.27;
-    r = Math.round(198 + p*38); g = Math.round(150 + p*12); b = Math.round(40 - p*20);
-  } else {
-    const p = (t-0.72)/0.28;
-    r = Math.round(236 - p*26); g = Math.round(162 - p*140); b = Math.round(20 - p*6);
-  }
-  return `rgb(${r},${g},${b})`;
+  const v = Math.max(0, Math.min(10, +s));
+  return CLR6[Math.min(5, Math.floor(v * 6 / 10))];
 }
 
 /* ══════════════════════════════════
@@ -434,7 +427,8 @@ function clipTxt(txt, maxW) {
 
 /* Draw a single job tile */
 function drawJobTile(r, pulse, isHov, isSel) {
-  const {x, y, w, h} = r;
+  const g = 1; // 2px gap (1px each side)
+  const x = r.x+g, y = r.y+g, w = r.w-g*2, h = r.h-g*2;
   if (w < 1 || h < 1) return;
 
   /* Fill */
@@ -656,26 +650,26 @@ function updateStats(list) {
   document.getElementById('sw').textContent = fmt(tot);
   document.getElementById('se').textContent = avg.toFixed(1);
 
-  const bins = Array(11).fill(0);
-  list.forEach(j => { bins[Math.min(10, Math.floor(j.exposure))] += j.employment_workers; });
+  const bins = Array(6).fill(0);
+  list.forEach(j => { bins[Math.min(5, Math.floor(j.exposure * 6 / 10))] += j.employment_workers; });
   const maxB = Math.max(...bins, 1);
   const hist = document.getElementById('hist');
   hist.innerHTML = '';
   bins.forEach((v, i) => {
     const b = document.createElement('div');
     b.className = 'hbar';
-    b.style.background = clr(i);
+    b.style.background = CLR6[i];
     b.style.height = Math.max(4, v/maxB*100) + '%';
-    b.title = `暴露度${i}：${fmt(v)}人`;
     hist.appendChild(b);
   });
 
   const trs = [
-    {lab:'极低 (0–2)', mn:0, mx:2},
-    {lab:'低   (3–4)', mn:3, mx:4},
-    {lab:'中   (5–6)', mn:5, mx:6},
-    {lab:'高   (7–8)', mn:7, mx:8},
-    {lab:'极高 (9–10)', mn:9, mx:10},
+    {lab:'极安全', mn:0,   mx:1.66, mid:0},
+    {lab:'低风险', mn:1.67,mx:3.33, mid:2},
+    {lab:'中低',   mn:3.34,mx:4.99, mid:4},
+    {lab:'中高',   mn:5,   mx:6.66, mid:5.5},
+    {lab:'高风险', mn:6.67,mx:8.33, mid:7.5},
+    {lab:'极高',   mn:8.34,mx:10,   mid:9.5},
   ];
   const tc = document.getElementById('tiers');
   tc.innerHTML = '';
@@ -686,7 +680,7 @@ function updateStats(list) {
     const pct = (cnt/tot*100).toFixed(0);
     const row = document.createElement('div');
     row.className = 'tier-row';
-    row.innerHTML = `<span class="tier-dot" style="background:${clr((tr.mn+tr.mx)/2)}"></span>
+    row.innerHTML = `<span class="tier-dot" style="background:${clr(tr.mid)}"></span>
       <span class="tier-lab">${tr.lab}</span>
       <span class="tier-val">${fmt(cnt)}</span>
       <span class="tier-pct">${pct}%</span>`;
