@@ -746,7 +746,11 @@ function showTip(e, r) {
   } else {
     h += `从业人数：${fmt(workers)}人<br>行业：${r.category}` +
          (r.avgSalary ? `<br>月薪：${r.avgSalary}` : '') + `</div>`;
-    h += `<div class="th">单击查看官方数据来源 ↗</div>`;
+    if (animState === 'overview') {
+      h += `<div class="th">单击进入「${r._cat}」放大视图 →</div>`;
+    } else {
+      h += `<div class="th">单击查看官方数据来源 ↗</div>`;
+    }
   }
   tip.innerHTML = h;
   let tx = e.clientX + 20, ty = e.clientY + 16;
@@ -872,22 +876,30 @@ cv.addEventListener('click', e => {
   const h = hitTest(e.clientX, e.clientY);
   if (!h) { pinned = null; clearDetail(); return; }
 
-  /* Job rect (non-category): always open source URL in new tab */
-  if (!h.isCategory) {
-    if (h.source_url) window.open(h.source_url, '_blank');
-    pinned = h;
-    showDetail(h);
+  if (viewMode === 'cat' && animState === 'overview') {
+    /* Click in overview → drill into category */
+    const catName = h._cat || (h.isCategory ? h.title : null);
+    if (catName) drillIn(catName);
     return;
   }
 
-  /* Category block: drill in / drill out */
-  if (viewMode === 'cat' && animState === 'overview') {
-    drillIn(h.title);
+  if (viewMode === 'cat' && animState === 'drilled') {
+    /* Click job rect in drilled view → open source URL */
+    if (!h.isCategory && h.source_url) {
+      window.open(h.source_url, '_blank');
+      pinned = h;
+      showDetail(h);
+    }
     return;
   }
-  if (viewMode === 'cat' && animState === 'drilled') {
-    pinned = (pinned === h) ? null : h;
-    if (pinned) showDetail(pinned); else clearDetail();
+
+  if (viewMode === 'all') {
+    /* Click job rect in all view → open source URL */
+    if (h.source_url) {
+      window.open(h.source_url, '_blank');
+      pinned = h;
+      showDetail(h);
+    }
   }
 });
 
@@ -914,7 +926,7 @@ fetch('data.json')
     /* Update hint for default cat view */
     document.getElementById('hint').innerHTML =
       '悬停职业查看简介<br>单击行业区块进入放大视图<br>' +
-      '<span style="color:#4a7a9b">单击职位矩形查看官方数据来源 ↗</span>';
+      '<span style="color:#4a7a9b">进入行业后单击职位查看数据来源 ↗</span>';
     requestAnimationFrame(loop);
   })
   .catch(err => {
