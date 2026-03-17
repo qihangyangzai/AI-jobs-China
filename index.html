@@ -719,8 +719,8 @@ function showDetail(r) {
       `<strong>从业人数：</strong>${fmt(r.employment_workers)}人` +
       (r.avgSalary ? `<br><strong>月薪参考：</strong>${r.avgSalary}` : '');
     document.getElementById('dd').textContent = r.detail || '';
-    const bossUrl = `https://www.zhipin.com/web/geek/job?query=${encodeURIComponent(r.title)}`;
-    srcEl.innerHTML = `<a href="${bossUrl}" target="_blank" rel="noopener">↗ 在 BOSS直聘 搜索该职位</a>`;
+    const { url: jobUrl, platform } = getJobSearch(r);
+    srcEl.innerHTML = `<a href="${jobUrl}" target="_blank" rel="noopener">↗ 在 ${platform} 搜索该职位</a>`;
   }
 }
 function clearDetail() {
@@ -748,7 +748,7 @@ function showTip(e, r) {
     if (animState === 'overview') {
       h += `<div class="th">单击进入「${r._cat}」放大视图 →</div>`;
     } else {
-      h += `<div class="th">单击在 BOSS直聘 搜索该职位 ↗</div>`;
+      h += `<div class="th">单击在 ${getJobSearch(r).platform} 搜索该职位 ↗</div>`;
     }
   }
   tip.innerHTML = h;
@@ -846,6 +846,80 @@ function drillOut() {
 }
 
 /* ══════════════════════════════════
+   JOB SEARCH PLATFORM ROUTER
+══════════════════════════════════ */
+function getJobSearch(job) {
+  const t = job.title.replace(/^★\s*/, '');
+  const cat = job.category;
+
+  const mk = fn => t => fn(t);
+  const boss    = t => ({ url: `https://www.zhipin.com/web/geek/job?query=${encodeURIComponent(t)}`,                                                  platform: 'BOSS直聘'  });
+  const wu51    = t => ({ url: `https://search.51job.com/list/000000,000000,0000,00,9,99,${encodeURIComponent(t)},2,1.html`,                          platform: '前程无忧'  });
+  const liepin  = t => ({ url: `https://www.liepin.com/zhaopin/?key=${encodeURIComponent(t)}`,                                                        platform: '猎聘'      });
+  const linkedin= t => ({ url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(t)}&location=%E4%B8%AD%E5%9B%BD`,                 platform: 'LinkedIn'  });
+  const maimai  = t => ({ url: `https://maimai.cn/job?keywords=${encodeURIComponent(t)}`,                                                             platform: '脉脉'      });
+  const eleduck = t => ({ url: `https://eleduck.com/search?keyword=${encodeURIComponent(t)}`,                                                         platform: '电鸭社区'  });
+  const jike    = t => ({ url: `https://web.okjike.com/search?keywords=${encodeURIComponent(t)}`,                                                     platform: '即刻'      });
+  const yizhi   = t => ({ url: `https://www.yizhipin.com/pc/job/search?keyword=${encodeURIComponent(t)}`,                                             platform: '易直聘'    });
+
+  /* ── 逐职位精准路由 ── */
+  const titleMap = {
+    /* AI 原生新职业 */
+    '智能体架构师':       linkedin,
+    'AI提效顾问':         jike,
+    '数字人IP运营者':     jike,
+    '垂直领域知识策展人': jike,
+    '微型SaaS独立创始人': eleduck,
+    '私有化模型微调专家': linkedin,
+    '生成式AI系统测试员': yizhi,
+    'AI伦理与合规官':     linkedin,
+    '多模态数据加工师':   boss,
+    '生成式AI内容制作员': boss,
+    /* 新质生产力前沿 */
+    '低空经济飞行规划员': yizhi,
+    '人形机器人训练员':   yizhi,
+    '数据资产评估师':     liepin,
+    '虚拟电厂调度员':     liepin,
+    '量子算法应用工程师': linkedin,
+    /* 创业者 / 一人公司 */
+    '一人公司操盘手':     jike,
+    '知识付费从业者':     jike,
+    '私营企业主':         jike,
+    '自由职业者':         eleduck,
+    '跨境电商从业者':     boss,
+    '职业经理人':         liepin,
+    /* 互联网 / 技术 高薪岗 */
+    'AI算法工程师':       maimai,
+    '网络安全工程师':     maimai,
+    '产品经理':           maimai,
+    '游戏开发工程师':     boss,
+    /* 金融高端 */
+    '财务总监':           liepin,
+    '基金经理':           liepin,
+    '风险管理师':         liepin,
+    /* 法律咨询 */
+    '执业律师':           liepin,
+    '管理咨询顾问':       liepin,
+  };
+
+  if (titleMap[t]) return titleMap[t](t);
+
+  /* ── 品类默认路由 ── */
+  if (cat === 'AI原生新职业')      return linkedin(t);
+  if (cat === '新质生产力前沿')    return yizhi(t);
+  if (cat === '创业者与自由职业')  return jike(t);
+  if (cat === '信息技术与互联网')  return boss(t);
+  if (cat === '金融与财务')        return wu51(t);
+  if (cat === '法律与咨询')        return liepin(t);
+  if (cat === '政府与公共服务')    return wu51(t);
+  if (cat === '教育与培训')        return wu51(t);
+  if (cat === '医疗与健康')        return wu51(t);
+  if (cat === '制造与工程')        return wu51(t);
+  if (cat === '行政与文职')        return wu51(t);
+  return boss(t);
+}
+
+/* ══════════════════════════════════
    EVENTS
 ══════════════════════════════════ */
 cv.addEventListener('mousemove', e => {
@@ -883,21 +957,17 @@ cv.addEventListener('click', e => {
   }
 
   if (viewMode === 'cat' && animState === 'drilled') {
-    /* Click job rect in drilled view → search on BOSS直聘 */
     if (!h.isCategory) {
-      window.open(`https://www.zhipin.com/web/geek/job?query=${encodeURIComponent(h.title)}`, '_blank');
-      pinned = h;
-      showDetail(h);
+      window.open(getJobSearch(h).url, '_blank');
+      pinned = h; showDetail(h);
     }
     return;
   }
 
   if (viewMode === 'all') {
-    /* Click job rect in all view → search on BOSS直聘 */
     if (!h.isCategory) {
-      window.open(`https://www.zhipin.com/web/geek/job?query=${encodeURIComponent(h.title)}`, '_blank');
-      pinned = h;
-      showDetail(h);
+      window.open(getJobSearch(h).url, '_blank');
+      pinned = h; showDetail(h);
     }
   }
 });
