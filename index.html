@@ -63,6 +63,11 @@ body{display:flex}
 .dr strong{color:#b0bac8}
 .dd{font-size:12px;color:#8a9aaa;line-height:1.85;
   margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}
+.dsource{margin-top:10px}
+.dsource a{font-size:11px;color:#60a5fa;text-decoration:none;
+  display:inline-flex;align-items:center;gap:4px;opacity:.85;
+  transition:opacity .15s}
+.dsource a:hover{opacity:1;text-decoration:underline}
 
 /* legend */
 .legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px;
@@ -97,6 +102,7 @@ body{display:flex}
   .ds-unit{font-size:11px}
   .dr{font-size:9px;line-height:1.8}
   .dd{font-size:9px;margin-top:8px;padding-top:8px}
+  .dsource a{font-size:9px}
   .legend{gap:4px;padding-top:10px}
   .ldot{width:12px;height:6px}
   .ll{font-size:9px;margin-right:3px}
@@ -180,6 +186,7 @@ body{display:flex}
     </div>
     <div class="dr" id="dr"></div>
     <div class="dd" id="dd"></div>
+    <div class="dsource" id="dsource"></div>
   </div>
 
   <div class="legend">
@@ -699,17 +706,22 @@ function showDetail(r) {
   const se = document.getElementById('ds');
   se.textContent = r.exposure.toFixed(1);
   se.style.color = clr(r.exposure);
+  const srcEl = document.getElementById('dsource');
   if (r.isCategory) {
     document.getElementById('dr').innerHTML =
       `<strong>细分职业：</strong>${r.jobs.length}个<br>` +
       `<strong>总从业人数：</strong>${fmt(r.rawValue || 0)}人`;
     document.getElementById('dd').textContent = '单击进入该行业查看所有细分职业 →';
+    srcEl.innerHTML = '';
   } else {
     document.getElementById('dr').innerHTML =
       `<strong>行业类别：</strong>${r.category}<br>` +
       `<strong>从业人数：</strong>${fmt(r.employment_workers)}人` +
       (r.avgSalary ? `<br><strong>月薪参考：</strong>${r.avgSalary}` : '');
     document.getElementById('dd').textContent = r.detail || '';
+    srcEl.innerHTML = r.source_url
+      ? `<a href="${r.source_url}" target="_blank" rel="noopener">↗ 查看官方数据来源</a>`
+      : '';
   }
 }
 function clearDetail() {
