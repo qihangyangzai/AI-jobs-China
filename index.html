@@ -70,6 +70,38 @@ body{display:flex}
 .ldot{width:16px;height:8px;border-radius:2px;display:inline-block}
 .ll{font-size:11px;color:#4e5a6a;margin-right:6px}
 
+/* ═══ MOBILE PORTRAIT ═══ */
+@media (max-width:600px) and (orientation:portrait){
+  #sidebar{
+    width:33.333vw;min-width:0;
+    padding:10px 7px 10px
+  }
+  .s-title{font-size:10px;letter-spacing:0}
+  .s-sub{font-size:9px;margin-bottom:10px}
+  .vtog{gap:3px;margin-bottom:10px}
+  .vbtn{font-size:9px;padding:5px 0}
+  .sl{font-size:8px;margin-top:8px}
+  .sv{font-size:18px}
+  .sn{font-size:8px}
+  .hist{height:30px;margin-top:5px}
+  .tiers{margin-top:8px}
+  .tier-row{gap:4px;margin-top:5px}
+  .tier-dot{width:7px;height:7px}
+  .tier-lab{font-size:9px}
+  .tier-val{font-size:9px}
+  .tier-pct{font-size:8px}
+  .divider{margin:10px 0}
+  #hint{font-size:9px;line-height:1.7}
+  .dt{font-size:12px;margin-bottom:5px}
+  .ds{font-size:22px}
+  .ds-unit{font-size:11px}
+  .dr{font-size:9px;line-height:1.8}
+  .dd{font-size:9px;margin-top:8px;padding-top:8px}
+  .legend{gap:4px;padding-top:10px}
+  .ldot{width:12px;height:6px}
+  .ll{font-size:9px;margin-right:3px}
+}
+
 /* ═══ CANVAS AREA ═══ */
 #main{flex:1;position:relative;overflow:hidden}
 #cv{display:block;position:absolute;top:0;left:0}
@@ -854,7 +886,13 @@ cv.addEventListener('click', e => {
 
 document.getElementById('bchome').addEventListener('click', drillOut);
 
-window.addEventListener('resize', () => { resize(); buildLayout(); });
+let _resizeTimer;
+function _handleResize(){
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(()=>{ resize(); buildLayout(); }, 120);
+}
+window.addEventListener('resize', _handleResize);
+window.addEventListener('orientationchange', ()=>{ setTimeout(_handleResize, 350); });
 
 /* ══════════════════════════════════
    BOOT
